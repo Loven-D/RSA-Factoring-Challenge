@@ -1,29 +1,39 @@
-# library to get arguments
+#usr/bin/python3
+
 import sys
+import math
+import signal
 
+def factorize_number(number):
+    factors = []
+    for i in range(2, int(math.sqrt(number)) + 1):
+        if number % i == 0:
+            factors.append((i, number // i))
+    return factors
 
-# fn unpack number factorial
-def fc():
-    """
-    function fc to search file to convert number and format n=p*q
-    """
+def factorize_file(file_path):
+    with open(file_path, 'r') as file:
+        number = int(file.readline().strip())
+        factors = factorize_number(number)
+        for factor in factors:
+            print(f"{number}={factor[0]}*{factor[1]}")
+
+def timeout_handler(signum, frame):
+    raise TimeoutError("Timeout")
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print("Usage: factors <file>")
+        sys.exit(1)
+    
+    file_path = sys.argv[1]
+    
+    # Set the timeout to 10 seconds
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(10)
+    
     try:
-        revfile = sys.argv[1]
-        with open(revfile) as f:
-            for revnumber in f:
-                revnumber = int(revnumber)
-                if revnumber % 2 == 0:
-                        print("{}={}*{}".format(revnumber, revnumber // 2, 2))
-                        continue
-                i = 3
-                while i < revnumber // 2:
-                    if revnumber % i == 0:
-                        print("{}={}*{}".format(revnumber, revnumber // i, i))
-                        break
-                    i = i + 2
-                if i == (revnumber // 2) + 1:
-                    print("{}={}*{}".format(revnumber, revnumber, 1))
-    except (IndexError):
-        pass
-
-fc()
+        factorize_file(file_path)
+        signal.alarm(0)  # Cancel the timeout if the factorization completes within 10 seconds
+    except TimeoutError:
+        print("Factorization exceeded the time limit.")
